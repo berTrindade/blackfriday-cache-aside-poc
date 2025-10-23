@@ -28,7 +28,7 @@ This is a pnpm monorepo containing:
 
 ```bash
 # Clone and install dependencies
-git clone <repository-url>
+git clone https://github.com/berTrindade/blackfriday-cache-aside-poc.git
 cd blackfriday-cache-aside-poc
 pnpm install
 
