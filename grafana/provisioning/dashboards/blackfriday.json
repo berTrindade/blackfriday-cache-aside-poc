@@ -1,0 +1,93 @@
+{
+    "title": "Black Friday Cache-Aside POC",
+    "uid": "blackfriday",
+    "timezone": "browser",
+    "schemaVersion": 39,
+    "version": 1,
+    "refresh": "1s",
+    "time": {
+        "from": "now-5m",
+        "to": "now"
+    },
+    "panels": [
+        {
+            "type": "timeseries",
+            "title": "Request Throughput Comparison",
+            "id": 2,
+            "gridPos": {
+                "h": 8,
+                "w": 24,
+                "x": 0,
+                "y": 0
+            },
+            "targets": [
+                {
+                    "expr": "sum(irate(http_requests_total{route=\"/cache/:sku\"}[30s]))",
+                    "legendFormat": "With Cache",
+                    "refId": "A"
+                },
+                {
+                    "expr": "sum(irate(http_requests_total{route=\"/nocache/:sku\"}[30s]))",
+                    "legendFormat": "Without Cache",
+                    "refId": "B"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "reqps",
+                    "decimals": 0,
+                    "min": 0,
+                    "custom": {
+                        "lineWidth": 3,
+                        "fillOpacity": 20
+                    }
+                },
+                "overrides": [
+                    {
+                        "matcher": {
+                            "id": "byName",
+                            "options": "With Cache"
+                        },
+                        "properties": [
+                            {
+                                "id": "color",
+                                "value": {
+                                    "mode": "fixed",
+                                    "fixedColor": "green"
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "matcher": {
+                            "id": "byName",
+                            "options": "Without Cache"
+                        },
+                        "properties": [
+                            {
+                                "id": "color",
+                                "value": {
+                                    "mode": "fixed",
+                                    "fixedColor": "yellow"
+                                }
+                            }
+                        ]
+                    }
+                ]
+            },
+            "options": {
+                "legend": {
+                    "displayMode": "list",
+                    "placement": "bottom",
+                    "showLegend": true,
+                    "calcs": [
+                        "lastNotNull"
+                    ]
+                },
+                "tooltip": {
+                    "mode": "multi"
+                }
+            }
+        }
+    ]
+}

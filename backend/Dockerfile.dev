@@ -1,0 +1,14 @@
+# syntax=docker/dockerfile:1
+FROM node:20-alpine AS base
+WORKDIR /app
+
+RUN corepack enable
+
+COPY package.json pnpm-lock.yaml* ./
+RUN pnpm install
+
+COPY tsconfig.json ./tsconfig.json
+COPY src ./src
+
+EXPOSE 3000
+CMD sh -c "pnpm exec tsx src/ensure.ts && pnpm exec tsx src/seed.ts && pnpm exec tsx src/server.ts"

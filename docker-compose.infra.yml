@@ -1,0 +1,54 @@
+version: '3.9'
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: blackfriday
+      POSTGRES_PASSWORD: blackfriday123
+      POSTGRES_DB: blackfriday
+    ports: ['5432:5432']
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U blackfriday -d blackfriday']
+      interval: 2s
+      timeout: 2s
+      retries: 20
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7
+    ports: ['6379:6379']
+    volumes:
+      - redis-data:/data
+
+  redisinsight:
+    image: redis/redisinsight:latest
+    ports: ['5540:5540']
+    volumes:
+      - redisinsight-data:/data
+
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    command: ['--config.file=/etc/prometheus/prometheus.yml']
+    ports: ['9090:9090']
+
+  grafana:
+    image: grafana/grafana:11.2.2
+    ports: ['3001:3000']
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_AUTH_ANONYMOUS_ENABLED: 'true'
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
+      GF_SECURITY_ALLOW_EMBEDDING: 'true'
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - grafana-data:/var/lib/grafana
+    depends_on: [prometheus]
+
+volumes:
+  grafana-data:
+  postgres-data:
+  redis-data:
+  redisinsight-data:
