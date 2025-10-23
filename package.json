@@ -1,0 +1,54 @@
+{
+    "name": "blackfriday-cache-aside-poc",
+    "version": "1.0.0",
+    "description": "Black Friday Cache-Aside Pattern POC - A monorepo demonstrating cache-aside pattern implementation",
+    "private": true,
+    "packageManager": "pnpm@9.0.0",
+    "scripts": {
+        "dev": "pnpm run docker:infra && concurrently \"pnpm run backend:docker\" \"pnpm run frontend:dev\"",
+        "dev:hybrid": "pnpm run docker:backend && pnpm run frontend:dev",
+        "dev:full": "pnpm --parallel --stream run dev",
+        "build": "pnpm --recursive run build",
+        "test": "pnpm --recursive run test",
+        "lint": "pnpm --recursive run lint",
+        "lint:fix": "pnpm --recursive run lint:fix",
+        "type-check": "pnpm --recursive run type-check",
+        "clean": "pnpm --recursive run clean",
+        "backend:dev": "pnpm --filter backend run dev",
+        "backend:docker": "docker-compose up backend --build",
+        "frontend:dev": "pnpm --filter frontend run dev",
+        "docker:infra": "docker-compose -f docker-compose.infra.yml up -d",
+        "docker:backend": "docker-compose up -d",
+        "docker:up": "docker-compose up -d",
+        "docker:down": "docker-compose down && docker-compose -f docker-compose.infra.yml down",
+        "docker:logs": "docker-compose logs -f",
+        "docker:logs:backend": "docker-compose logs -f backend",
+        "setup:hybrid": "pnpm install && pnpm run docker:backend",
+        "setup": "pnpm install && pnpm run docker:up",
+        "benchmark": "node benchmark.mjs"
+    },
+    "keywords": [
+        "cache-aside",
+        "redis",
+        "postgresql",
+        "black-friday",
+        "poc",
+        "monorepo",
+        "pnpm"
+    ],
+    "author": "",
+    "license": "MIT",
+    "devDependencies": {
+        "@types/node": "^20.10.0",
+        "typescript": "^5.3.0",
+        "eslint": "^8.55.0",
+        "@typescript-eslint/eslint-plugin": "^6.13.0",
+        "@typescript-eslint/parser": "^6.13.0",
+        "prettier": "^3.1.0",
+        "concurrently": "^8.2.0"
+    },
+    "engines": {
+        "node": ">=18.0.0",
+        "pnpm": ">=8.0.0"
+    }
+}
