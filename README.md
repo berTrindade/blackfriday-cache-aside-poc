@@ -44,12 +44,14 @@ pnpm run frontend:dev
 
 ### Access Points
 
-| Service    | URL                   | Description          |
-| ---------- | --------------------- | -------------------- |
-| Frontend   | http://localhost:5173 | Main application UI  |
-| Backend    | http://localhost:3000 | API server           |
-| Grafana    | http://localhost:3001 | Monitoring dashboard |
-| Prometheus | http://localhost:9090 | Metrics collection   |
+| Service    | URL                   | Description                 |
+| ---------- | --------------------- | --------------------------- |
+| Frontend   | http://localhost:5173 | Main application UI         |
+| Backend    | http://localhost:3000 | API server                  |
+| Grafana    | http://localhost:3001 | Monitoring dashboard        |
+| Prometheus | http://localhost:9090 | Metrics collection          |
+| pgAdmin    | http://localhost:5050 | PostgreSQL admin tool       |
+| RedisInsight | http://localhost:5540 | Redis visualization tool  |
 
 ## Testing the Cache-Aside Pattern
 
@@ -135,6 +137,35 @@ curl -X POST http://localhost:3000/reset
 
 - Appears when cache hit rate reaches 80%+
 - Shows "Cache warmed up" with speedup multiplier
+
+## Development Tools
+
+The infrastructure includes helpful tools for debugging and visualization:
+
+### pgAdmin (PostgreSQL Administration)
+
+Access pgAdmin at **http://localhost:5050** to:
+- Browse database tables and data
+- Run SQL queries
+- View table structures and relationships
+- Monitor database performance
+
+**Auto-configured connection:**
+- Server: "Black Friday DB" (automatically connected)
+- Database: `blackfriday`
+- Tables: View the `products` table with 100 sample SKUs
+
+No login required - pgAdmin is pre-configured to connect to the PostgreSQL database automatically.
+
+### RedisInsight (Redis Visualization)
+
+Access RedisInsight at **http://localhost:5540** to:
+- View cached keys and values
+- Monitor cache hit/miss rates
+- Inspect TTL (time-to-live) values
+- Debug cache entries in real-time
+
+Perfect for understanding how the cache-aside pattern works by seeing products being cached.
 
 ## Project Structure
 
