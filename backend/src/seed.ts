@@ -1,4 +1,4 @@
-import { db } from './db.js';
+import { db, initDatabase } from './db.js';
 import {
   products,
   product_variants,
@@ -6,6 +6,9 @@ import {
   product_reviews,
   price_history,
 } from './schema.js';
+
+// Initialize database tables first
+await initDatabase();
 
 const categories = [
   'Electronics',
