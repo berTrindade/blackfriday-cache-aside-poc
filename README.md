@@ -1,12 +1,12 @@
 # Black Friday Cache-Aside POC
 
-A demonstration of the cache-aside pattern for high-traffic scenarios like Black Friday sales. This project showcases how Redis caching can improve performance by 16x compared to direct database access, with realistic simulated latencies (50ms database, 2ms cache).
+A demonstration of the cache-aside pattern for high-traffic scenarios like Black Friday sales. This project showcases how Redis caching can dramatically improve performance compared to direct database access with realistic e-commerce data complexity.
 
 ## The Black Friday Challenge
 
-Imagine it's Black Friday, and your e-commerce site expects traffic to spike 50x normal levels. Customers are racing to grab limited deals, and every millisecond counts. Without caching, your database becomes the bottleneck—each product lookup takes ~50ms, limiting you to ~185 requests/second per connection. With 10,000 concurrent users, that's disaster.
+Imagine it's Black Friday, and your e-commerce site expects traffic to spike 50x normal levels. Customers are racing to grab limited deals, and every millisecond counts. Without caching, your database becomes the bottleneck—each enriched product lookup requires multiple queries (product data, variants, inventory across warehouses, reviews, price history), limiting throughput significantly. With 10,000 concurrent users, that's disaster.
 
-This POC demonstrates how the cache-aside pattern solves this: by caching product data in Redis, response times drop to ~3ms, and throughput jumps to ~2,900 requests/second—a **16x improvement**. Your database stays healthy, customers stay happy, and sales keep flowing.
+This POC demonstrates how the cache-aside pattern solves this: by caching enriched product data in Redis, response times drop dramatically, and throughput jumps significantly. Your database stays healthy, customers stay happy, and sales keep flowing.
 
 ## Architecture
 
@@ -15,6 +15,26 @@ This is a pnpm monorepo containing:
 - **Backend**: Fastify API server with Prometheus metrics
 - **Frontend**: React application with embedded Grafana charts
 - **Infrastructure**: Docker services for PostgreSQL, Redis, Prometheus, and Grafana
+
+## Realistic Data Model
+
+Unlike simple POCs that just add artificial delays, this implementation uses a realistic e-commerce data model:
+
+- **Products**: 100 Black Friday deals with categories, brands, and descriptions
+- **Product Variants**: 2-3 variants per product (sizes, colors) with different pricing
+- **Inventory Locations**: Stock distributed across 4 warehouses (US-East, US-West, EU-Central, Asia-Pacific)
+- **Product Reviews**: 5-15 reviews per product with ratings
+- **Price History**: 3-5 historical price points per product
+
+The performance difference comes from **real computational complexity**:
+- Cache hit: 1 Redis lookup → instant enriched product data
+- Cache miss: 5+ database queries + joins + aggregations + calculations
+  - Main product query
+  - Variants query with price calculations
+  - Inventory aggregation across warehouses
+  - Review aggregation (average rating, count)
+  - Price history retrieval
+  - Discount and savings calculations
 
 ## Quick Start
 
@@ -75,17 +95,14 @@ pnpm benchmark
 
 **Expected Results:**
 
-```
-Throughput:
-  No Cache:     ~185 req/sec
-  With Cache:   ~2,900 req/sec
-  Speedup:      16x faster with cache
+The benchmark compares two scenarios:
+- **With Cache**: First request fetches from DB (5+ queries), subsequent requests served from Redis
+- **Without Cache**: Every request performs 5+ database queries with joins and aggregations
 
-Latency (Average):
-  No Cache:     ~53 ms
-  With Cache:   ~3 ms
-  Reduction:    94.5% lower latency
-```
+The performance difference is significant due to:
+1. Reduced database load (1 Redis lookup vs 5+ DB queries)
+2. Pre-computed aggregations (cached average ratings, inventory totals)
+3. No repeated joins and calculations
 
 The benchmark runs for ~25 seconds total:
 
@@ -129,9 +146,9 @@ curl -X POST http://localhost:3000/reset
 
 **Grafana Chart:**
 
-- **Green line**: Throughput with cache (~2,900 req/sec)
-- **Yellow line**: Throughput without cache (~185 req/sec)
-- The 16x difference demonstrates the performance benefit
+- **Green line**: Throughput with cache (high after warmup)
+- **Yellow line**: Throughput without cache (consistently lower due to DB query overhead)
+- The difference demonstrates the cache-aside pattern benefit
 
 **Status Badge:**
 
@@ -221,24 +238,34 @@ Perfect for understanding how the cache-aside pattern works by seeing products b
 1. Request arrives for /cache/SKU-1
 2. Check Redis: GET product:SKU-1
 3. If found (cache hit):
-   - Return immediately (~2ms)
+   - Return enriched product data immediately
 4. If not found (cache miss):
-   - Query PostgreSQL (~50ms)
+   - Query PostgreSQL (5+ queries):
+     * Product base data
+     * Product variants with price calculations
+     * Inventory across all warehouses
+     * Review aggregation (avg rating, count)
+     * Recent price history
+   - Compute enriched data (discounts, savings, totals)
    - Store in Redis with 30s TTL
    - Return result
 5. Future requests served from cache until expiration
 ```
 
-### Simulated Latencies
+### Realistic Performance Characteristics
 
-The backend includes realistic latency simulation to make the demo meaningful:
+This POC demonstrates real-world performance differences without artificial delays:
 
-```typescript
-SIMULATE_DB_LATENCY_MS = 50; // Typical database query over network
-SIMULATE_CACHE_LATENCY_MS = 2; // Redis is fast but not instant
-```
+**Database Queries (no cache):**
+- Multiple SELECT queries with JOINs
+- Aggregation functions (AVG, COUNT, SUM)
+- ORDER BY and LIMIT operations
+- Data transformation and calculations
 
-These delays make the performance difference visible and believable in a local environment.
+**Cache (Redis):**
+- Single key lookup
+- Pre-computed, serialized data
+- No query planning or execution overhead
 
 ## Technology Stack
 
@@ -314,13 +341,17 @@ pnpm clean                 # Clean build artifacts
 
 ## Performance Metrics
 
-**Typical Results:**
+**What to Expect:**
 
 - Cache Hit Rate: 90%+ after warmup
-- Throughput Improvement: 16x with cache
-- Latency Reduction: 94.5% faster with cache
-- Cache Response Time: ~3ms average
-- Database Response Time: ~53ms average
+- Significant throughput improvement with cache (varies by system)
+- Dramatic latency reduction when serving from cache
+- Database query reduction: 5+ queries → 1 Redis lookup per cached request
+
+The exact numbers will vary based on your system, but the pattern demonstrates:
+1. Cache hits are much faster than database queries
+2. Complex queries with joins and aggregations benefit most from caching
+3. The cache-aside pattern reduces database load dramatically
 
 ## License
 
