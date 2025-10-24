@@ -32,13 +32,65 @@ export async function initDatabase() {
     await db.execute(sql`
       CREATE TABLE IF NOT EXISTS products (
         id SERIAL PRIMARY KEY,
-        sku VARCHAR(255) UNIQUE NOT NULL,
-        name VARCHAR(255) NOT NULL,
-        price DECIMAL(10,2) NOT NULL,
-        discount DECIMAL(5,2) DEFAULT 0,
-        inventory INTEGER NOT NULL DEFAULT 0,
+        sku VARCHAR(64) UNIQUE NOT NULL,
+        name VARCHAR(200) NOT NULL,
+        price INTEGER NOT NULL,
+        discount INTEGER NOT NULL DEFAULT 0,
+        inventory INTEGER NOT NULL DEFAULT 100,
+        category VARCHAR(100),
+        brand VARCHAR(100),
+        description TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
+    // Create product variants table
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS product_variants (
+        id SERIAL PRIMARY KEY,
+        product_id INTEGER NOT NULL,
+        variant_name VARCHAR(100) NOT NULL,
+        sku VARCHAR(64) UNIQUE NOT NULL,
+        price_modifier INTEGER NOT NULL DEFAULT 0,
+        inventory INTEGER NOT NULL DEFAULT 0,
+        FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
+      );
+    `);
+
+    // Create inventory locations table
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS inventory_locations (
+        id SERIAL PRIMARY KEY,
+        product_id INTEGER NOT NULL,
+        warehouse VARCHAR(100) NOT NULL,
+        quantity INTEGER NOT NULL DEFAULT 0,
+        reserved INTEGER NOT NULL DEFAULT 0,
+        FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
+      );
+    `);
+
+    // Create product reviews table
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS product_reviews (
+        id SERIAL PRIMARY KEY,
+        product_id INTEGER NOT NULL,
+        rating INTEGER NOT NULL,
+        review_text TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
+      );
+    `);
+
+    // Create price history table
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS price_history (
+        id SERIAL PRIMARY KEY,
+        product_id INTEGER NOT NULL,
+        price INTEGER NOT NULL,
+        discount INTEGER NOT NULL DEFAULT 0,
+        changed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
       );
     `);
 
